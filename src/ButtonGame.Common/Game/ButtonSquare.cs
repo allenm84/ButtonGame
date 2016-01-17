@@ -14,19 +14,16 @@ namespace ButtonGame
     public int Value;
     public bool Cleared;
     public RectF Bounds;
-    public ButtonState State;
     public bool MouseDown;
 
     internal void ReleaseMouse()
     {
       MouseDown = false;
-      State = ButtonState.Normal;
     }
 
     internal void CaptureMouse()
     {
       MouseDown = true;
-      State = ButtonState.Pressed;
     }
   }
 }

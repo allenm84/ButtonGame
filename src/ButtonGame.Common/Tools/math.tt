@@ -1,0 +1,100 @@
+﻿<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ assembly name="System.Core" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.Reflection" #>
+<#@ import namespace="Microsoft.CSharp" #>
+<#@ import namespace="System.CodeDom" #>
+<#@ output extension=".cs" #>
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace ButtonGame
+{
+	  public static class math
+	  {
+<#	
+var type = typeof(Math);
+var methods = type.GetMethods(BindingFlags.Public | BindingFlags.Static);
+foreach (var method in methods)
+{
+	if(method.Name == "IEEERemainder")
+		continue;
+
+	Write("\t\t\t/// <summary> <see cref=\"Math.{0}\"/>. </summary>", method.Name);
+	WriteLine("");
+	Write("\t\t\tpublic static {0} {1}", GetTypeName(method.ReturnType), method.Name.ToLower());
+	var parameters = method.GetParameters();
+	if (parameters != null && parameters.Length > 0)
+	{
+		Write("({0})", string.Join(", ", parameters.Select(GetParameterDefinition)));
+		Write("{ ");
+		if (method.ReturnType != typeof(void))
+		{
+			Write("return ");
+		}
+		Write("Math.{0}({1});", method.Name, string.Join(", ", parameters.Select(GetParameterReference)));
+		Write(" }");
+	}
+	WriteLine("");
+	WriteLine("");
+}
+#>
+			/// <summary> Perform linear interpolation between two values. </summary>
+			public static double lerp(double v0, double v1, double t)
+			{
+			  return v0 + t * (v1 - v0);
+			}
+
+			/// <summary> Performs the modulo operation. </summary>
+			public static int mod(int x, int m)
+			{
+			  return (x % m + m) % m;
+			}
+	}
+}
+<#+ private string GetTypeName(Type type)
+{
+	using (var provider = new CSharpCodeProvider())
+	{
+		var typeRef = new CodeTypeReference(type);
+		return provider.GetTypeOutput(typeRef);
+	}
+}#>
+<#+ private string GetParameterReference(ParameterInfo arg)
+{
+	var info = new List<string>();
+	if (arg.IsOut)
+	{
+		info.Add("out");
+	}
+	else if (arg.IsIn)
+	{
+		info.Add("in");
+	}
+	info.Add(arg.Name);
+	return string.Join(" ", info);
+}#>
+<#+ private string GetParameterDefinition(ParameterInfo arg)
+{
+	var info = new List<string>();
+	var type = arg.ParameterType;
+	if (arg.IsOut)
+	{
+		info.Add("out");
+		type = type.GetElementType();
+	}
+	else if (arg.IsIn)
+	{
+		info.Add("in");
+		type = type.GetElementType();
+	}
+	
+	info.Add(GetTypeName(type));
+	info.Add(arg.Name);
+	return string.Join(" ", info);
+}#>

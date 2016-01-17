@@ -13,19 +13,6 @@ namespace ButtonGame
 {
 	public struct ARGB
 	{
-		[StructLayout(LayoutKind.Explicit)]
-		private struct rgbHex
-		{
-			[FieldOffset(0)]
-			public byte r;
-			[FieldOffset(1)]
-			public byte g;
-			[FieldOffset(2)]
-			public byte b;
-			[FieldOffset(0)]
-			public int value;
-		}
-
 		public byte A, R, G, B;
 
 <#
@@ -35,41 +22,23 @@ var set = new HashSet<string>();
 
 foreach(var line in lines)
 {
-	if(line.StartsWith("#")) continue;
-	var entries = line.Split('#').ToList();
-	var hex = entries.Last().Trim();
-	var first = entries.First();
+	var entries = line.Split(new char[]{'"'}, StringSplitOptions.RemoveEmptyEntries);
+	var name = entries.First();
+	var rgb = entries.Last();
 
-	var sb = new StringBuilder();
-	bool toUpper = true;
-	foreach(var c in first)
-	{
-		if(char.IsLetter(c))
-		{
-			sb.Append(toUpper ? char.ToUpper(c) : c);
-			toUpper = false;
-		}
-		else
-		{
-			toUpper = true;
-		}
-	}
-
-	var name = sb.ToString();
 	if (set.Add(name))
 	{
-		WriteLine("\t\tpublic static readonly ARGB {0} = new ARGB(0x{1});", name, hex.Substring(1));
+		WriteLine("\t\tpublic static readonly ARGB {0} = new ARGB({1});", name, rgb);
 	}
 }
 #>
 
-		public ARGB(int rgb)
+		public ARGB(byte r, byte g, byte b)
 		{
-			var h = new rgbHex{ value = rgb };
 			A = 255;
-			R = h.r;
-			G = h.g;
-			B = h.b;
+			R = r;
+			G = g;
+			B = b;
 		}
 
 		public ARGB(byte a, byte r, byte g, byte b)

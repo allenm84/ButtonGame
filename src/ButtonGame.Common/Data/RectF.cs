@@ -13,7 +13,7 @@ namespace ButtonGame
     public float Left { get { return X; } }
     public float Right { get { return X + Width; } }
     public float Top { get { return Y; } }
-    public float Bottom { get { return Y + Width; } }
+    public float Bottom { get { return Y + Height; } }
 
     public RectF(float x, float y, float width, float height)
     {
@@ -23,17 +23,12 @@ namespace ButtonGame
       Height = height;
     }
 
-    public bool Contains(PtF pt)
-    {
-      return Contains(pt.X, pt.Y);
-    }
-
     public bool Contains(float x, float y)
     {
       return X <= x &&
-            x < X + Width &&
+            x < Right &&
             Y <= y &&
-            y < Y + Height;
+            y < Bottom;
     }
 
     public void Inflate(float x, float y)

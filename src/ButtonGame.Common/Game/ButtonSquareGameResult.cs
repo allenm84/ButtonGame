@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 
 namespace ButtonGame
 {
-  public struct PtF
+  public enum ButtonSquareGameResult
   {
-    public float X, Y;
+    None,
+    Win,
+    Lose,
   }
 }

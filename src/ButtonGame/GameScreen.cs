@@ -13,10 +13,12 @@ namespace ButtonGame
   {
     private Timer timerInvalidate;
     private Font buttonFont;
+    private ButtonSquareGame game;
 
     public GameScreen()
     {
       buttonFont = new Font("Consolas", 12, FontStyle.Bold);
+      game = new ButtonSquareGame();
 
       timerInvalidate = new Timer();
       timerInvalidate.Enabled = false;
@@ -29,6 +31,8 @@ namespace ButtonGame
       {
         DoYield(timerInvalidate.Start);
       }
+
+      DoYield(() => game.Rebuild(Width, Height));
     }
 
     private async void DoYield(Action action)
@@ -39,30 +43,15 @@ namespace ButtonGame
 
     bool IMessageFilter.PreFilterMessage(ref Message m)
     {
-      //if (m.Msg == 0x0200)
-      //{
-      //  highlightRight = null;
-      //  highlightLeft = null;
-
-      //  var pt = PointToClient(Cursor.Position);
-      //  if (!Bounds.Contains(pt))
-      //  {
-      //    ReleaseMouseAll();
-      //  }
-      //  else
-      //  {
-      //    var square = HitTestSquare(pt);
-      //    if (square != null)
-      //    {
-      //      highlightRight = board[GetRight(square)];
-      //      highlightLeft = board[GetLeft(square)];
-      //    }
-      //  }
-      //}
-      //else if (m.Msg == 0x101)
-      //{
-      //  Rebuild();
-      //}
+      if (m.Msg == 0x0200)
+      {
+        var pt = PointToClient(Cursor.Position);
+        game.UpdateHighlight(pt.X, pt.Y);
+      }
+      else if (m.Msg == 0x101)
+      {
+        game.Rebuild(ClientRectangle.Width, ClientRectangle.Height);
+      }
       return false;
     }
 
@@ -86,47 +75,34 @@ namespace ButtonGame
     protected override void OnSizeChanged(EventArgs e)
     {
       base.OnSizeChanged(e);
-      //CalculateBounds();
+      game.CalculateBounds(ClientRectangle.Width, ClientRectangle.Height);
     }
 
     protected override void OnMouseDown(MouseEventArgs e)
     {
       base.OnMouseDown(e);
-      //if (board == null)
-      //{
-      //  return;
-      //}
-
-      //ReleaseMouseAll();
-
-      //var square = HitTestSquare(e.Location);
-      //if (square != null)
-      //{
-      //  square.CaptureMouse();
-      //}
+      game.OnMouseDown(e.X, e.Y);
     }
 
     protected override void OnMouseUp(MouseEventArgs e)
     {
       base.OnMouseUp(e);
-      //if (board == null)
-      //{
-      //  return;
-      //}
-
-      //var square = board.SingleOrDefault(b => b.MouseDown);
-      //if (square != null)
-      //{
-      //  ClickSquare(square);
-      //}
-
-      //ReleaseMouseAll();
+      var result = game.OnMouseUp(e.X, e.Y);
+      switch (result)
+      {
+        case ButtonSquareGameResult.Lose:
+          MessageBox.Show(this, "You lose! Press space to reset", "Result");
+          break;
+        case ButtonSquareGameResult.Win:
+          MessageBox.Show(this, "You win! Press space to reset", "Result");
+          break;
+      }
     }
 
     protected override void OnPaint(PaintEventArgs e)
     {
       base.OnPaint(e);
-      //RenderScene(e.Graphics);
+      game.RenderScene(new GdiGraphics(e.Graphics));
     }
 
     private void timerInvalidate_Tick(object sender, EventArgs e)
